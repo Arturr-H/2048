@@ -161,8 +161,9 @@ impl<const N: usize> Debug for Board<N> {
 
         for row in self.pieces {
             for piece in row {
-                end += &(piece.to_string() + &" ");
+                end += &format!("{:^4}", piece.to_string());
             }
+            end.push('\n');
             end.push('\n');
         }
         write!(f, "{}", end)
