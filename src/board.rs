@@ -23,7 +23,7 @@ impl<const N: usize> Board<N> {
     pub fn new() -> Self {
         Self { pieces: [[0; N]; N] }
     }
-    
+
     /// Getter
     pub fn get(&self, x: usize, y: usize) -> Option<&Brick> {
         self.pieces.get(y)?.get(x)
@@ -33,6 +33,48 @@ impl<const N: usize> Board<N> {
     pub fn set(&mut self, x: usize, y: usize, to: Brick) -> Option<()> {
         *self.pieces.get_mut(y)?.get_mut(x)? = to;
         Some(())
+    }
+
+    /// Merge all pieces in direction
+    pub fn merge_all(&mut self, direction: Direction) -> () {
+        match direction {
+            Direction::Down => {
+                /* Begin from bottom to up */
+                for y in (0..N).rev() {
+                    for x in 0..N {
+                        self.merge_vertical(x, y, 1);
+                    }
+                }
+            },
+            Direction::Up => {
+                /* Begin from top to bottom */
+                for y in 0..N {
+                    for x in 0..N {
+                        self.merge_vertical(x, y, -1);
+                    }
+                }
+            },
+            Direction::Left => {
+                /* Begin from top to bottom */
+                for y in 0..N {
+
+                    /* Left to right */
+                    for x in 0..N {
+                        self.merge_horizontal(x, y, -1);
+                    }
+                }
+            },
+            Direction::Right => {
+                /* Begin from top to bottom */
+                for y in 0..N {
+
+                    /* Right to left */
+                    for x in (0..N).rev() {
+                        self.merge_horizontal(x, y, 1);
+                    }
+                }
+            },
+        }
     }
 
     /// Merge vertical
