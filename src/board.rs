@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 /* Imports */
-use rand::{self, Rng};
+use rand::{self, Rng, rngs::ThreadRng};
 
 /* Types */
 type Brick = u16;
@@ -10,6 +10,9 @@ type Brick = u16;
 pub struct Board<const N: usize> {
     /// Two-dim array of pieces
     pieces: [[Brick; N]; N],
+
+    /// The random number generator tied to the game
+    rng: ThreadRng
 }
 
 /* Direction for movement */
@@ -21,7 +24,24 @@ pub enum Direction {
 impl<const N: usize> Board<N> {
     /// Constructor
     pub fn new() -> Self {
-        Self { pieces: [[0; N]; N] }
+        Self { pieces: [[0; N]; N], rng: rand::thread_rng() }
+    }
+
+    /// Set one random piece
+    pub fn set_random(&mut self) -> () {
+        let mut empty_tiles = Vec::new();
+
+        for (y, row) in self.pieces.iter().enumerate() {
+            for (x, item) in row.iter().enumerate() {
+                if item == &0 {
+                    empty_tiles.push((x, y));
+                };
+            };
+        };
+
+        let coord = empty_tiles[self.rng.gen_range(0..empty_tiles.len())];
+        let value = if self.rng.gen_bool(0.75) { 2u16 } else { 4u16 };
+        self.set(coord.0, coord.1, value);
     }
 
     /// Getter
