@@ -7,13 +7,14 @@ pub struct AnimationStep {
     from_x: usize,
     from_y: usize,
     to_x:   usize,
-    to_y:   usize
+    to_y:   usize,
+    is_merge: bool
 }
 
 /* JS object impls */
 impl AnimationStep {
-    pub fn new(from_x: usize, from_y: usize, to_x: usize, to_y: usize) -> Self {
-        Self { from_x, from_y, to_x, to_y }
+    pub fn new(from_x: usize, from_y: usize, to_x: usize, to_y: usize, is_merge: bool) -> Self {
+        Self { from_x, from_y, to_x, to_y, is_merge }
     }
 
     pub fn parsed(&self) -> String {
