@@ -2,6 +2,7 @@
 use std::fmt::Debug;
 use js_sys::Math;
 use wasm_bindgen::prelude::*;
+use crate::animation::AnimationStep;
 
 /* Types */
 type Brick = u16;
@@ -68,13 +69,18 @@ impl Board {
     }
 
     /// Merge all pieces in direction
-    pub fn merge_all(&mut self, direction: Direction) {
+    pub fn merge_all(&mut self, direction: Direction) -> String {
+        let mut steps = Vec::new();
+
         match direction {
             Direction::Down => {
                 /* Begin from bottom to up */
                 for y in (0..SIZE).rev() {
                     for x in 0..SIZE {
-                        self.merge_vertical(x, y, 1);
+                        match self.merge_vertical(x, y, 1) {
+                            Some(e) => steps.push(e),
+                            None => ()
+                        };
                     }
                 }
             },
@@ -82,7 +88,10 @@ impl Board {
                 /* Begin from top to bottom */
                 for y in 0..SIZE {
                     for x in 0..SIZE {
-                        self.merge_vertical(x, y, -1);
+                        match self.merge_vertical(x, y, -1) {
+                            Some(e) => steps.push(e),
+                            None => ()
+                        };
                     }
                 }
             },
@@ -92,7 +101,10 @@ impl Board {
 
                     /* Left to right */
                     for x in 0..SIZE {
-                        self.merge_horizontal(x, y, -1);
+                        match self.merge_horizontal(x, y, -1) {
+                            Some(e) => steps.push(e),
+                            None => ()
+                        };
                     }
                 }
             },
@@ -102,17 +114,22 @@ impl Board {
 
                     /* Right to left */
                     for x in (0..SIZE).rev() {
-                        self.merge_horizontal(x, y, 1);
+                        match self.merge_horizontal(x, y, 1) {
+                            Some(e) => steps.push(e),
+                            None => ()
+                        };
                     }
                 }
             },
         }
+
+        serde_json::to_string(&steps).unwrap_or(String::new())
     }
 
     /// Merge vertical
     /// 
     /// `direction`: -1 = up, 1 = down
-    fn merge_vertical(&mut self, x: usize, y: usize, direction: isize) -> Option<()> {
+    fn merge_vertical(&mut self, x: usize, y: usize, direction: isize) -> Option<AnimationStep> {
         let original_piece = self.get(x, y).unwrap();
         if original_piece == 0 { return None; };
         let mut coords = (x, y);
@@ -126,21 +143,26 @@ impl Board {
             }else if piece == original_piece {
                 self.set(coords.0, coords.1.checked_add_signed(direction)?, piece*2);
                 self.set(x, y, 0);
-                return None;
+
+                return Some(AnimationStep::new(x, y, coords.0, coords.1.checked_add_signed(direction)?));
             }else {
                 break;
             }
         }
     
         self.set(coords.0, coords.1, original_piece);
-        if coords.1 != y { self.set(x, y, 0); };
-        Some(())
+        if coords.1 != y {
+            self.set(x, y, 0);
+            return Some(AnimationStep::new(x, y, coords.0, coords.1));
+        };
+
+        None
     }
 
-    /// Merge horizontal
+    /// Merge horizontal - returns animation steps
     /// 
     /// `direction`: -1 = left, 1 = right
-    fn merge_horizontal(&mut self, x: usize, y: usize, direction: isize) -> Option<()> {
+    fn merge_horizontal(&mut self, x: usize, y: usize, direction: isize) -> Option<AnimationStep> {
         let original_piece = self.get(x, y).unwrap();
         if original_piece == 0 { return None; };
         let mut coords = (x, y);
@@ -154,15 +176,20 @@ impl Board {
             }else if piece == original_piece {
                 self.set(coords.0.checked_add_signed(direction)?, coords.1, piece*2);
                 self.set(x, y, 0);
-                return None;
+
+                return Some(AnimationStep::new(x, y, coords.0.checked_add_signed(direction)?, coords.1));
             }else {
                 break;
             }
         }
     
         self.set(coords.0, coords.1, original_piece);
-        if coords.0 != x { self.set(x, y, 0); };
-        Some(())
+        if coords.0 != x {
+            self.set(x, y, 0);
+            return Some(AnimationStep::new(x, y, coords.0, coords.1));
+        };
+
+        None
     }
 
     /// Get all pieces as a one-dim vector (used in js-side)
