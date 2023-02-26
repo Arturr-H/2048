@@ -34,7 +34,7 @@ impl Board {
     }
 
     /// Set one random piece
-    pub fn set_random(&mut self) {
+    pub fn set_random(&mut self) -> Vec<usize> {
         let mut empty_tiles = Vec::new();
 
         for (y, row) in self.pieces.iter().enumerate() {
@@ -45,11 +45,13 @@ impl Board {
             };
         };
 
-        if empty_tiles.is_empty() { return; };
+        if empty_tiles.is_empty() { return vec![]; };
         let index = Math::random() * empty_tiles.len() as f64;
         let coord = empty_tiles[index as usize];
         let value = if Math::random() > 0.25 { 2u16 } else { 4u16 };
         self.set(coord.0, coord.1, value);
+
+        vec![coord.0, coord.1, value as usize]
     }
 
     /// Getter
@@ -144,7 +146,7 @@ impl Board {
                 self.set(coords.0, coords.1.checked_add_signed(direction)?, piece*2);
                 self.set(x, y, 0);
 
-                return Some(AnimationStep::new(x, y, coords.0, coords.1.checked_add_signed(direction)?));
+                return Some(AnimationStep::new(x, y, coords.0, coords.1.checked_add_signed(direction)?, true));
             }else {
                 break;
             }
@@ -153,7 +155,7 @@ impl Board {
         self.set(coords.0, coords.1, original_piece);
         if coords.1 != y {
             self.set(x, y, 0);
-            return Some(AnimationStep::new(x, y, coords.0, coords.1));
+            return Some(AnimationStep::new(x, y, coords.0, coords.1, false));
         };
 
         None
@@ -177,7 +179,7 @@ impl Board {
                 self.set(coords.0.checked_add_signed(direction)?, coords.1, piece*2);
                 self.set(x, y, 0);
 
-                return Some(AnimationStep::new(x, y, coords.0.checked_add_signed(direction)?, coords.1));
+                return Some(AnimationStep::new(x, y, coords.0.checked_add_signed(direction)?, coords.1, true));
             }else {
                 break;
             }
@@ -186,7 +188,7 @@ impl Board {
         self.set(coords.0, coords.1, original_piece);
         if coords.0 != x {
             self.set(x, y, 0);
-            return Some(AnimationStep::new(x, y, coords.0, coords.1));
+            return Some(AnimationStep::new(x, y, coords.0, coords.1, false));
         };
 
         None
