@@ -39,6 +39,7 @@ impl<const N: usize> Board<N> {
             };
         };
 
+        if empty_tiles.is_empty() { return; };
         let coord = empty_tiles[self.rng.gen_range(0..empty_tiles.len())];
         let value = if self.rng.gen_bool(0.75) { 2u16 } else { 4u16 };
         self.set(coord.0, coord.1, value);
