@@ -101,7 +101,9 @@ const animate = (steps, callback) => {
         let y_perc = y_add*100;
 
         if (is_merge) {
-            brick.classList.add("top");
+            aniamte_bump(to_x, to_y);
+
+            brick.style.zIndex = 2;
             brick.animate([
                 { transform: `translate(0%, 0%) scale(1)` },
                 { transform: `translate(calc(${x_perc}% + ${x_add}vmin), calc(${y_perc}% + ${y_add}vmin)) scale(0.6)` },
@@ -126,6 +128,25 @@ const animate = (steps, callback) => {
         callback();
     }, ANIMATION_SPEED);
 };
+const aniamte_bump = (x, y) => {
+    setTimeout(() => {
+        document.getElementById(`${x}-${y}`).animate([
+            { transform: `scale(1)` },
+            { transform: `scale(1.025)` },
+            { transform: `scale(1.06)` },
+            { transform: `scale(1.075)` },
+            { transform: `scale(1.085)` },
+            { transform: `scale(1.07)` },
+            { transform: `scale(1.055)` },
+            { transform: `scale(1.03)` },
+            { transform: `scale(1.01)` },
+            { transform: `scale(1)` },
+        ], {
+            duration: ANIMATION_SPEED / 2,
+            easing: "ease-in-out"
+        })
+    }, ANIMATION_SPEED + 50);
+}
 
 /* Animate piece getting set randomly */
 const animate_popup = (x, y, num) => {
@@ -146,6 +167,7 @@ const animate_popup = (x, y, num) => {
 /* Draw the light background of every brick */
 const draw_shells = () => {
     const pieces = board.get_pieces();
+    document.getElementById("shell-container").innerHTML = "";
 
     /* Update */
     pieces.forEach((_, index) => {
