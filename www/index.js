@@ -11,14 +11,15 @@ board.set_random();
 
 /* Constants */
 const SIZE = 4;
+const ANIMATION_SPEED = 130; // ms
 
 /* Functionality */
 const merge_in_direction = (direction) => {
     let steps = JSON.parse(board.merge_all(direction));
     if (steps.length > 0) {
         let [x, y, num] = board.set_random();
-        animate_popup(x, y, num);
         
+        animate_popup(x, y, num);
         animate(steps, () => {
             draw_grid();
         });
@@ -58,7 +59,7 @@ const draw_grid = () => {
     const pieces = board.get_pieces();
 
     /* Clear grid */
-    GAME_CONTAINER.innerHTML = "";
+    GAME_CONTAINER.innerHTML = '<div class="shell-container" id="shell-container"></div>';
 
     /* Update */
     pieces.forEach((piece, index) => {
@@ -68,21 +69,24 @@ const draw_grid = () => {
         let x = Math.floor(index % 4);
         brick.id = `${x}-${y}`
         
+        const brick_container = document.createElement("div");
+        brick_container.classList.add("brick-container");
+        brick_container.id = `shell-${x}-${y}`;
+        
         if (piece !== 0) {
             const number = document.createElement("p");
             number.innerText = piece;
             brick.classList.add(`brick-${piece}`);
 
+            brick_container.classList.add("top-container");
             brick.appendChild(number);
         };
-
-        const brick_container = document.createElement("div");
-        brick_container.classList.add("brick-container");
-        brick_container.id = `shell-${x}-${y}`;
-        brick_container.appendChild(brick);
-
-        GAME_CONTAINER.appendChild(brick_container);
+        
+        // brick_container.appendChild(brick);
+        GAME_CONTAINER.appendChild(brick);
     });
+
+    draw_shells();
 };
 
 /* Animate steps */
@@ -96,24 +100,23 @@ const animate = (steps, callback) => {
         let x_perc = x_add*100;
         let y_perc = y_add*100;
 
-
         if (is_merge) {
-            brick.style.zIndex = 0;
+            brick.classList.add("top");
             brick.animate([
                 { transform: `translate(0%, 0%) scale(1)` },
                 { transform: `translate(calc(${x_perc}% + ${x_add}vmin), calc(${y_perc}% + ${y_add}vmin)) scale(0.6)` },
             ], {
-                duration: 130,
+                duration: ANIMATION_SPEED,
                 easing: "ease-in-out"
             })
 
         }else {
-
+            brick.classList.add("top");
             brick.animate([
-                { transform: `translate(0%, 0%) scale(1)` },
-                { transform: `translate(calc(${x_perc}% + ${x_add}vmin), calc(${y_perc}% + ${y_add}vmin)) scale(1.1)` },
+                { transform: `translate(0%, 0%)` },
+                { transform: `translate(calc(${x_perc}% + ${x_add}vmin), calc(${y_perc}% + ${y_add}vmin))` },
             ], {
-                duration: 130,
+                duration: ANIMATION_SPEED,
                 easing: "ease-in-out"
             })
         }
@@ -121,7 +124,7 @@ const animate = (steps, callback) => {
 
     setTimeout(() => {
         callback();
-    }, 130);
+    }, ANIMATION_SPEED);
 };
 
 /* Animate piece getting set randomly */
@@ -137,7 +140,24 @@ const animate_popup = (x, y, num) => {
 
     brick.appendChild(number);
     shell.appendChild(brick);
+
 };
+
+/* Draw the light background of every brick */
+const draw_shells = () => {
+    const pieces = board.get_pieces();
+
+    /* Update */
+    pieces.forEach((_, index) => {
+        const shell = document.createElement("div");
+        shell.classList.add("shell");
+        let y = Math.floor(index / 4);
+        let x = Math.floor(index % 4);
+        shell.id = `shell-${x}-${y}`
+        
+        document.getElementById("shell-container").appendChild(shell);
+    });
+}
 
 /* Init */
 draw_grid();
